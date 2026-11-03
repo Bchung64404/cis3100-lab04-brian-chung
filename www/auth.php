@@ -1,21 +1,39 @@
 <?php
-session_start();
+require_once 'db.php';
 
-function require_login(): void {
-    if (empty($_SESSION['user_id'])) {
+function current_user(): ?array {
+    global $pdo;
+    static $user = false;
+    if ($user === false) {
+        $user = null;
+        if (!empty($_SESSION['userID'])) {
+            $stmt = $pdo->prepare("SELECT userID, FirstName, Role FROM users WHERE userID = ?");
+            $stmt->execute([$_SESSION['userID']]);
+            $user = $stmt->fetch() ?: null;
+        }
+    }
+    return $user;
+}
+
+function require_login(): array {
+    $user = current_user();
+    if (!$user) {
         header('Location: login.php');
         exit;
     }
+    return $user;
 }
 
-function require_role(string ...$roles): void {
-    require_login();
-    if (!in_array($_SESSION['role'] ?? '', $roles, true)) {
+function require_role(string ...$roles): array {
+    $user = require_login();
+    if (!in_array($user['Role'], $roles, true)) {
         http_response_code(403);
         exit('403 Forbidden: you do not have access to this page.');
     }
+    return $user;
 }
 
 function has_role(string ...$roles): bool {
-    return in_array($_SESSION['role'] ?? '', $roles, true);
+    $user = current_user();
+    return $user !== null && in_array($user['Role'], $roles, true);
 }

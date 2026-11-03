@@ -20,7 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Route target profile tracking tokens into temporary validation zones[cite: 1]
             $_SESSION['2fa_pending_userID'] = $user['userID'];
-            
+
+            // NOTE: user_id and role are intentionally omitted here 
+            // and should be set only after successful 2FA verification 
+            // to prevent bypassing the 2FA security checkpoint.
+
             // Check if user has initialized their TOTP token device profile previously[cite: 1]
             if (empty($user['TotpSecret'])) {
                 header("Location: setup_2fa.php");

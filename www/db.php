@@ -36,7 +36,8 @@ $columns = [
     "ALTER TABLE users ADD COLUMN EmailVerified INT DEFAULT 0",
     "ALTER TABLE users ADD COLUMN EmailVerificationToken VARCHAR(64) NULL",
     "ALTER TABLE users ADD COLUMN TwoFactorPin VARCHAR(6) NULL",
-    "ALTER TABLE users ADD COLUMN TwoFactorCreatedAt DATETIME NULL"
+    "ALTER TABLE users ADD COLUMN TwoFactorCreatedAt DATETIME NULL",
+    "ALTER TABLE users ADD COLUMN Role VARCHAR(20) NOT NULL DEFAULT 'user'"
 ];
 
 foreach ($columns as $sql) {
