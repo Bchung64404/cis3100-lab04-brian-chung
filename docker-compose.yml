@@ -16,8 +16,9 @@ services:
 
 # PHP-FPM Service
   php-app:
-    build: .  
+    image: php:8.2-fpm  
     container_name: lab_php
+    command: sh -c "php -m | grep -q pdo_mysql || docker-php-ext-install pdo pdo_mysql; php-fpm"
     volumes:
       - ./www:/var/www/html
     environment:
