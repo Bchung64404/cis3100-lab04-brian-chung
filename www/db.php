@@ -3,17 +3,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Load Composer's autoloader and phpdotenv
-require_once __DIR__ . '/vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-$dotenv->safeLoad(); // safeLoad won't crash if the .env file is missing in production
-
-// Access credentials using getenv() robustly
-$host = getenv('MYSQL_HOST') ?: $_ENV['MYSQL_HOST'] ?? null;
-$db   = getenv('MYSQL_DATABASE') ?: $_ENV['MYSQL_DATABASE'] ?? null;
-$user = getenv('MYSQL_USER') ?: $_ENV['MYSQL_USER'] ?? null;
-$pass = getenv('MYSQL_PASSWORD') ?: $_ENV['MYSQL_PASSWORD'] ?? null;
+$host = getenv('MYSQL_HOST');
+$db   = getenv('MYSQL_DATABASE');
+$user = getenv('MYSQL_USER');
+$pass = getenv('MYSQL_PASSWORD');
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";

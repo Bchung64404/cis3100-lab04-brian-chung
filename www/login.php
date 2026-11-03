@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($pass, $user['Password'])) {
-            
+
             if ($user['EmailVerified'] == 0) {
                 die("<p style='color:red; font-family:sans-serif; max-width:400px; margin:40px auto;'>❌ Login Blocked: Complete your baseline link validation first.</p>");
             }
@@ -70,6 +70,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </a>
         </div>
     </form>
+
+    <hr style="margin:25px 0;">
+
+    <p style="text-align:center; margin-bottom:10px;">Don't have an account?</p>
+    <a href="register.php"
+        style="display:block; text-align:center; padding:10px 15px; background:#0076ff; color:#fff; text-decoration:none; border-radius:4px; font-size:14px;">
+        Register
+    </a>
 
 </body>
 
