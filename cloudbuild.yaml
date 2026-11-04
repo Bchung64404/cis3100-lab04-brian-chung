@@ -12,3 +12,7 @@ steps:
 
 images:
   - 'us-east1-docker.pkg.dev/$PROJECT_ID/lab04-images/lab04-app:$COMMIT_SHA'
+
+# Store build logs in Google Cloud Logging
+options:
+  logging: CLOUD_LOGGING_ONLY
