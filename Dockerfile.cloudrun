@@ -1,0 +1,26 @@
+
+# Use PHP 8.2 with Apache instead of PHP-FPM
+FROM php:8.2-apache
+
+# Install MySQL support
+RUN docker-php-ext-install pdo_mysql
+
+# Set the working directory
+WORKDIR /var/www
+
+# Copy application files
+COPY www/ /var/www/html/
+COPY database/ /var/www/database/
+COPY scripts/ /var/www/scripts/
+
+# Configure Apache to listen on port 8080
+RUN sed -i 's/Listen 80/Listen 8080/' \
+    /etc/apache2/ports.conf \
+    && sed -i 's/:80>/:8080>/' \
+    /etc/apache2/sites-available/000-default.conf
+
+# Expose the port used by Cloud Run
+EXPOSE 8080
+
+# Start the Apache web server
+CMD ["apache2-foreground"]
