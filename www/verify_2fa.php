@@ -8,7 +8,8 @@ if (!isset($_SESSION['2fa_pending_userID'])) {
     exit;
 }
 
-$message = "";
+$message = '';
+$messageType = 'danger';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userPin = trim($_POST['pin']);
@@ -43,31 +44,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: dashboard.php");
         exit;
     } else {
-        $message = "<p style='color:red; font-weight:bold;'>Access Denied: Invalid configuration key or verification PIN expired.</p>";
+        $message = "That code did not match. Check your authenticator and try again."; $messageType = "danger";
     }
 }
+
+require_once __DIR__ . '/ui.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>MFA Checkpoint</title>
-</head>
-
-<body
-    style="font-family: sans-serif; max-width: 400px; margin: 40px auto; padding: 20px; text-align: center; line-height: 1.6;">
-    <h2>Device Authenticator Checkpoint</h2>
-    <p>Open your mobile verification device application to capture your current dynamic login passkey string:</p>
-
-    <?php echo $message; ?>
-
-    <form method="POST">
-        <input type="text" name="pin" maxlength="6" required autocomplete="off" placeholder="Enter 6-digit PIN"
-            style="padding: 10px; font-size: 16px; text-align: center; width: 80%; margin-bottom: 15px;">
-        <br>
-        <button type="submit" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Verify PIN</button>
-    </form>
-</body>
-
-</html>
+<?php ui_auth_start('One last check', 'Open your authenticator app and enter the current six-digit code.'); ui_alert($message, $messageType); ?>
+<form method="post">
+    <div class="mb-4"><label class="form-label" for="pin">Authenticator code</label><input class="form-control code-input" id="pin" name="pin" type="text" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" placeholder="000000" aria-describedby="pin-help" required><div class="form-text" id="pin-help">Codes change regularly. Use the one currently shown in your app.</div></div>
+    <button class="btn btn-primary w-100" type="submit">Verify and sign in <?= ui_icon('arrow') ?></button>
+</form>
+<div class="form-divider"></div><p class="auth-bottom mb-0"><a href="login.php">Back to sign in</a></p>
+<?php ui_auth_end(); ?>

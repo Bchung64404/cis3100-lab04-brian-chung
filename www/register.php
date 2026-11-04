@@ -2,7 +2,8 @@
 require 'db.php';
 require 'mailer.php';
 
-$message = "";
+$message = '';
+$messageType = 'danger';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first = trim($_POST['firstname']);
@@ -16,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$email]);
 
             if ($stmt->rowCount() > 0) {
-                $message = "<p style='color:red;'>Email already registered!</p>";
+                $message = "An account with this email already exists. Sign in to continue."; $messageType = "danger";
             } else {
                 $hashedPass = password_hash($pass, PASSWORD_BCRYPT);
                 // Extra Credit Feature: Create a unique hex security token payload
@@ -35,60 +36,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <small>Token verification hash signature: <code>{$verificationToken}</code></small>
                 ";
                 if (sendSystemMail($email, "{$first} {$last}", $emailSubject, $emailContent)) {
-                    $message = "<p style='color:green;'>Registration successful! A real verification link has been dispatched. Check your Mailtrap inbox to validate your access profile.</p>";
+                    $message = "Your account is created. Check your inbox for a verification link."; $messageType = "success";
                 } else {
-                    $message = "<p style='color:orange;'>Profile built, but system failed to transmit verification message wrapper.</p>";
+                    $message = "Your account was created, but the verification email could not be sent. Please try again later."; $messageType = "warning";
                 }
             }
         } catch (\PDOException $e) {
-            $message = "<p style='color:red;'>Error: " . $e->getMessage() . "</p>";
+            error_log('Registration failed: ' . $e->getMessage());
+            $message = "We could not create your account. Please try again later.";
+            $messageType = "danger";
         }
     } else {
-        $message = "<p style='color:orange;'>All fields are required.</p>";
+        $message = "All fields are required."; $messageType = "warning";
     }
 }
+
+require_once __DIR__ . '/ui.php';
 ?>
-<!DOCTYPE html>
-<html>
-
-<head>
-    <title>Register & Verify Stack</title>
-</head>
-
-<body style="font-family:sans-serif; max-width:400px; margin:40px auto; padding:20px; line-height:1.6;">
-
-    <h2>Step 1: Create Account Portal</h2>
-
-    <?php echo $message; ?>
-
-    <form method="POST">
-        <label>First Name:</label><br>
-        <input type="text" name="firstname" style="width:100%; padding:8px; margin:5px 0;" required><br>
-
-        <label>Last Name:</label><br>
-        <input type="text" name="lastname" style="width:100%; padding:8px; margin:5px 0;" required><br>
-
-        <label>Email Address:</label><br>
-        <input type="email" name="email" style="width:100%; padding:8px; margin:5px 0;" required><br>
-
-        <label>Password Asset:</label><br>
-        <input type="password" name="password" style="width:100%; padding:8px; margin:5px 0;" required><br><br>
-
-        <button type="submit"
-            style="padding:10px 15px; background:#0076ff; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">Register
-            Core Account</button>
-    </form>
-
-    <hr>
-
-    <p style="text-align:center; margin-bottom:10px;">Already have an account?</p>
-    <a href="login.php"
-        style="display:block; text-align:center; padding:10px 15px; background:#0076ff; color:#fff; text-decoration:none; border-radius:4px; font-size:14px; font-weight:bold;">
-        Login
-    </a>
-
-    <p>Looking to verify an existing link? <a href="verify_email.php">Manual Verification Input Terminal</a></p>
-
-</body>
-
-</html>
+<?php ui_auth_start('Create your account', 'A few details now. Your own space in a moment.', 1); ui_alert($message, $messageType); ?>
+<form method="post">
+    <div class="row g-3 mb-3">
+        <div class="col-sm-6"><label class="form-label" for="firstname">First name</label><input class="form-control" id="firstname" name="firstname" autocomplete="given-name" maxlength="100" placeholder="First name" value="<?= ui_escape($_POST['firstname'] ?? '') ?>" required></div>
+        <div class="col-sm-6"><label class="form-label" for="lastname">Last name</label><input class="form-control" id="lastname" name="lastname" autocomplete="family-name" maxlength="100" placeholder="Last name" value="<?= ui_escape($_POST['lastname'] ?? '') ?>" required></div>
+    </div>
+    <div class="mb-3"><label class="form-label" for="email">Email address</label><input class="form-control" type="email" id="email" name="email" autocomplete="email" maxlength="255" placeholder="you@example.com" value="<?= ui_escape($_POST['email'] ?? '') ?>" aria-describedby="email-help" required><div id="email-help" class="form-text">We'll send a link to confirm your email.</div></div>
+    <div class="mb-4"><label class="form-label" for="password">Password</label><input class="form-control" type="password" id="password" name="password" autocomplete="new-password" placeholder="Create a password" required></div>
+    <button class="btn btn-primary w-100" type="submit">Create account <?= ui_icon('arrow') ?></button>
+</form>
+<div class="form-divider"></div><p class="auth-bottom mb-3">Already have an account? <a class="fw-semibold" href="login.php">Sign in</a></p>
+<p class="text-center small mb-0"><a href="verify_email.php">Have a verification token?</a></p>
+<?php ui_auth_end(); ?>

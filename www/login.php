@@ -1,84 +1,39 @@
 <?php
 require 'db.php';
-
-$message = "";
-
+require_once __DIR__ . '/ui.php';
+$message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email']);
-    $pass = $_POST['password'];
-
-    if (!empty($email) && !empty($pass)) {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE Email = ?");
+    $email = trim($_POST['email'] ?? '');
+    $pass = $_POST['password'] ?? '';
+    if ($email !== '' && $pass !== '') {
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE Email = ?');
         $stmt->execute([$email]);
         $user = $stmt->fetch();
-
         if ($user && password_verify($pass, $user['Password'])) {
-
             if ($user['EmailVerified'] == 0) {
-                die("<p style='color:red; font-family:sans-serif; max-width:400px; margin:40px auto;'>❌ Login Blocked: Complete your baseline link validation first.</p>");
-            }
-
-            // Route target profile tracking tokens into temporary validation zones[cite: 1]
-            $_SESSION['2fa_pending_userID'] = $user['userID'];
-
-            // NOTE: user_id and role are intentionally omitted here 
-            // and should be set only after successful 2FA verification 
-            // to prevent bypassing the 2FA security checkpoint.
-
-            // Check if user has initialized their TOTP token device profile previously[cite: 1]
-            if (empty($user['TotpSecret'])) {
-                header("Location: setup_2fa.php");
+                $message = 'Please verify your email before signing in. Use the link in your welcome email.';
             } else {
-                header("Location: verify_2fa.php");
+                // Full authentication is established only after the authenticator check.
+                $_SESSION['2fa_pending_userID'] = $user['userID'];
+                header('Location: ' . (empty($user['TotpSecret']) ? 'setup_2fa.php' : 'verify_2fa.php'));
+                exit;
             }
-            exit;
-
         } else {
-            $message = "<p style='color:red;'>Invalid email or password parameters.</p>";
+            $message = 'The email or password did not match. Please try again.';
         }
+    } else {
+        $message = 'Enter your email address and password to continue.';
     }
 }
+ui_auth_start('Good to see you.', 'Sign in to your account. Pick up right where you left off.');
+ui_alert($message);
 ?>
-<!DOCTYPE html>
-<html>
-
-<head>
-    <title>System Login Proxy</title>
-</head>
-
-<body style="font-family:sans-serif; max-width:400px; margin:40px auto; padding:20px;">
-
-    <h2>Account Sign-In Terminal</h2>
-
-    <?php echo $message; ?>
-
-    <form method="POST">
-        <label>Registered Email Address:</label><br>
-        <input type="email" name="email" style="width:100%; padding:8px; margin:5px 0;" required><br>
-
-        <label>Secure Password Key:</label><br>
-        <input type="password" name="password" style="width:100%; padding:8px; margin:5px 0;" required><br><br>
-
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button type="submit"
-                style="padding:10px 15px; background:#0076ff; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:14px;">
-                Request Login Handshake
-            </button>
-            <a href="reset.php"
-                style="padding:10px 15px; background:#0076ff; color:#fff; text-decoration:none; border-radius:4px; cursor:pointer; font-size:14px; display:inline-block;">
-                Reset Password
-            </a>
-        </div>
-    </form>
-
-    <hr style="margin:25px 0;">
-
-    <p style="text-align:center; margin-bottom:10px;">Don't have an account?</p>
-    <a href="register.php"
-        style="display:block; text-align:center; padding:10px 15px; background:#0076ff; color:#fff; text-decoration:none; border-radius:4px; font-size:14px;">
-        Register
-    </a>
-
-</body>
-
-</html>
+<form method="post">
+    <div class="mb-3"><label class="form-label" for="email">Email address</label><input class="form-control" type="email" id="email" name="email" autocomplete="username" placeholder="you@example.com" value="<?= ui_escape($_POST['email'] ?? '') ?>" required></div>
+    <div class="mb-4"><div class="d-flex align-items-center justify-content-between gap-2"><label class="form-label" for="password">Password</label><a class="form-link mb-2" href="reset.php">Forgot password?</a></div><input class="form-control" type="password" id="password" name="password" autocomplete="current-password" placeholder="Enter your password" required></div>
+    <button class="btn btn-primary w-100" type="submit">Sign in <?= ui_icon('arrow') ?></button>
+    <p class="form-text d-flex align-items-center justify-content-center gap-2 mt-3 mb-0"><?= ui_icon('lock') ?> Your authenticator code comes next.</p>
+</form>
+<div class="form-divider"></div><p class="auth-bottom mb-3">New here? <a class="fw-semibold" href="register.php">Create an account</a></p>
+<p class="text-center small mb-0"><a href="verify_email.php">Need to verify your email?</a></p>
+<?php ui_auth_end(); ?>

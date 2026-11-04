@@ -1,7 +1,8 @@
 <?php
 require 'db.php';
 
-$message = "";
+$message = '';
+$messageType = 'danger';
 
 // Auto-catch parameters if passed inside an active query link string
 $tokenParam = $_GET['token'] ?? '';
@@ -19,29 +20,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || !empty($tokenParam)) {
             $update = $pdo->prepare("UPDATE users SET EmailVerified = 1, EmailVerificationToken = NULL WHERE userID = ?");
             $update->execute([$user['userID']]);
             
-            $message = "<p style='color:green; font-weight:bold;'>✔ Success: Email authenticated cleanly! You may now navigate to the <a href='login.php'>Login Terminal</a>.</p>";
+            $message = "Your email is verified. You can now sign in."; $messageType = "success";
         } else {
-            $message = "<p style='color:red;'>✖ Error: Invalid, structural mismatch, or expired verification token profile.</p>";
+            $message = "This verification token is invalid or has already been used."; $messageType = "danger";
         }
     }
 }
+
+require_once __DIR__ . '/ui.php';
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Activation Core Terminal</title>
-</head>
-<body style="font-family:sans-serif; max-width:400px; margin:40px auto; padding:20px;">
-
-    <h2>Step 2: Email Authentication Verification</h2>
-
-    <?php echo $message; ?>
-
-    <form method="POST">
-        <label>Paste Simulated Email Token String:</label><br>
-        <input type="text" name="token" value="<?php echo htmlspecialchars($tokenParam); ?>" style="width:100%; padding:8px; margin:10px 0;" required><br>
-        <button type="submit" style="padding:10px 15px; background:#28a745; color:#fff; border:none; border-radius:4px; cursor:pointer;">Verify Email Authenticity</button>
-    </form>
-
-</body>
-</html>
+<?php ui_auth_start('Check your inbox', 'Use the link in your welcome email, or paste your verification token below.', 2); ui_alert($message, $messageType); ?>
+<form method="post">
+    <div class="mb-4"><label class="form-label" for="token">Verification token</label><input class="form-control" id="token" name="token" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Paste your email verification token" value="<?= ui_escape($tokenParam) ?>" aria-describedby="token-help" required><div class="form-text" id="token-help">You'll find this token in your account verification email.</div></div>
+    <button class="btn btn-primary w-100" type="submit">Verify email <?= ui_icon('check') ?></button>
+</form>
+<div class="form-divider"></div><p class="auth-bottom mb-0">Ready to continue? <a class="fw-semibold" href="login.php">Sign in</a></p>
+<?php ui_auth_end(); ?>

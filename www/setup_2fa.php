@@ -8,7 +8,8 @@ if (!isset($_SESSION['2fa_pending_userID'])) {
 }
 $userId = $_SESSION['2fa_pending_userID'];
 $ga = new PHPGangsta_GoogleAuthenticator();
-$message = "";
+$message = '';
+$messageType = 'danger';
 // 1. Fetch user email to populate the authenticator UI label
 $stmt = $pdo->prepare("SELECT Email, TotpSecret FROM users WHERE userID = ?");
 $stmt->execute([$userId]);
@@ -40,88 +41,28 @@ WHERE userID = ?");
         header("Location: dashboard.php");
         exit;
     } else {
-        $message = "<p style='color:red; font-weight:bold;'>￿ Verification Failed: PIN does not
-match clock signature. Sync your device time and try again.</p>";
+        $message = "That code did not match. Check your device time and try again."; $messageType = "danger";
     }
 }
+
+require_once __DIR__ . '/ui.php';
 ?>
-<!DOCTYPE html>
-<html>
-
-<head>
-    <title>Authenticator Setup</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        body {
-            font-family: sans-serif;
-            max-width: 450px;
-            margin: 40px auto;
-            padding: 20px;
-            line-height: 1.6;
-            text-align: center;
-        }
-
-        .qr-container {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-            padding: 15px;
-            background: #f9f9f9;
-            border-radius: 8px;
-            border: 1px dashed #ccc;
-        }
-
-        input[type="text"] {
-            width: 80%;
-            padding: 10px;
-            font-size: 18px;
-            letter-spacing: 4px;
-            text- align: center;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            margin: 10px 0;
-        }
-
-        .btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size:
-                16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            width: 84%;
-        }
-    </style>
-</head>
-
-<body>
-    <h2>Lock Device Configuration</h2>
-    <p>Scan the code wrapper below using <strong>Google Authenticator</strong> or any
-        TOTP terminal application:</p>
-    <div class="qr-container">
-        <div id="qrcode"></div>
-    </div>
-    <p style="font-size: 13px; color: #666;">Manual Secret Key Configuration: <br><code
-            style="font-size:15px; font-weight:bold; color:#0076ff;"><?php echo $secretKey;
-            ?></code></p>
-    <?php echo $message; ?>
-    <form method="POST">
-        <label><strong>Enter the 6-Digit Generated App Verification
-                Code:</strong></label><br>
-        <input type="text" name="code" maxlength="6" required autocomplete="off" placeholder="000000"><br><br>
-        <button type="submit" class="btn">Verify and Complete Handshake</button>
-    </form>
-    <!-- Client-Side Javascript Injection Core Hook -->
-    <script type="text/javascript">
-        new QRCode(document.getElementById("qrcode"), {
-            text: "<?php echo $qrCodeDataUrl; ?>",
-            width: 200,
-            height: 200
-        });
-    </script>
-</body>
-
-</html>
+<?php ui_auth_start('Make it yours. Keep it yours.', 'Connect an authenticator app to finish setting up your account.', 3); ui_alert($message, $messageType); ?>
+<ol class="small text-secondary ps-3 mb-3"><li class="mb-2">Open Google Authenticator or another TOTP app.</li><li>Scan this QR code, or enter the setup key manually.</li></ol>
+<div class="qr-wrap mb-3"><div id="qrcode" role="img" aria-label="QR code for connecting your authenticator"></div></div>
+<details class="mb-4"><summary class="small fw-semibold">Can't scan the code?</summary><p class="form-text mt-2">Add an account manually in your authenticator using this setup key. Keep it private.</p><code class="secret-key"><?= ui_escape($secretKey) ?></code></details>
+<form method="post">
+    <div class="mb-4"><label class="form-label" for="code">Six-digit code from your app</label><input class="form-control code-input" id="code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code" placeholder="000000" required></div>
+    <button class="btn btn-primary w-100" type="submit">Finish setup <?= ui_icon('check') ?></button>
+</form>
+<div class="form-divider"></div><p class="auth-bottom mb-0"><a href="login.php">Back to sign in</a></p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+if (typeof QRCode !== 'undefined') {
+    new QRCode(document.getElementById('qrcode'), {text: <?= json_encode($qrCodeDataUrl, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>, width: 180, height: 180});
+} else {
+    document.getElementById('qrcode').textContent = 'QR code unavailable. Use the manual setup key below.';
+    document.querySelector('details').open = true;
+}
+</script>
+<?php ui_auth_end(); ?>
