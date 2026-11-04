@@ -32,7 +32,7 @@ ui_alert($message);
     <div class="mb-3"><label class="form-label" for="email">Email address</label><input class="form-control" type="email" id="email" name="email" autocomplete="username" placeholder="you@example.com" value="<?= ui_escape($_POST['email'] ?? '') ?>" required></div>
     <div class="mb-4"><div class="d-flex align-items-center justify-content-between gap-2"><label class="form-label" for="password">Password</label><a class="form-link mb-2" href="reset.php">Forgot password?</a></div><input class="form-control" type="password" id="password" name="password" autocomplete="current-password" placeholder="Enter your password" required></div>
     <button class="btn btn-primary w-100" type="submit">Sign in <?= ui_icon('arrow') ?></button>
-    <p class="form-text d-flex align-items-center justify-content-center gap-2 mt-3 mb-0"><?= ui_icon('lock') ?> Your authenticator code comes next.</p>
+    <p class="form-text d-flex align-items-center justify-content-center gap-2 mt-3 mb-0"><?= ui_icon('lock') ?> Your authenticator code comes next. THIS IS CI/CD TEST 1</p>
 </form>
 <div class="form-divider"></div><p class="auth-bottom mb-3">New here? <a class="fw-semibold" href="register.php">Create an account</a></p>
 <p class="text-center small mb-0"><a href="verify_email.php">Need to verify your email?</a></p>
