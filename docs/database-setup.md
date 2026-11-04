@@ -4,6 +4,9 @@ This procedure implements the database preparation requirement only. It does not
 deploy to Google Cloud, configure CI/CD, or complete the separate UI/unit-test
 assignment. Run commands from the repository root using Docker Compose v2.
 
+The local database uses MySQL 8.4. Before starting an existing 8.0 data directory,
+follow the backup and compatibility guidance in [mysql-84-upgrade.md](mysql-84-upgrade.md).
+
 ## What changed
 
 - `database/migrations/001_create_users.sql` defines the complete users schema.
@@ -194,7 +197,7 @@ MySQL DDL can implicitly commit; a failed migration cannot be assumed rolled bac
 Inspect the actual schema and tracking row, restore the verified backup or repair
 the failed change through a reviewed procedure, and only then reconcile migration
 history. Do not simply delete the incomplete row and retry potentially partial SQL.
-See the [MySQL implicit commit documentation](https://dev.mysql.com/doc/refman/8.0/en/implicit-commit.html).
+See the [MySQL implicit commit documentation](https://dev.mysql.com/doc/refman/8.4/en/implicit-commit.html).
 
 ## Isolated database setup checks
 
