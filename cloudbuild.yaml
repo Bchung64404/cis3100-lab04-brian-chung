@@ -1,0 +1,14 @@
+
+steps:
+  # Build your Cloud Run Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.cloudrun'
+      - '-t'
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID/lab04-images/lab04-app:$COMMIT_SHA'
+      - '.'
+
+images:
+  - 'us-east1-docker.pkg.dev/$PROJECT_ID/lab04-images/lab04-app:$COMMIT_SHA'
