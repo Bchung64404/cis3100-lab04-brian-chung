@@ -1,6 +1,6 @@
 
 steps:
-  # Build your Cloud Run Docker image
+  # Step 1: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -10,9 +10,27 @@ steps:
       - 'us-east1-docker.pkg.dev/$PROJECT_ID/lab04-images/lab04-app:$COMMIT_SHA'
       - '.'
 
+  # Step 2: Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID/lab04-images/lab04-app:$COMMIT_SHA'
+
+  # Step 3: Deploy the new image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'lab04-app'
+      - '--image'
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID/lab04-images/lab04-app:$COMMIT_SHA'
+      - '--region'
+      - 'us-east1'
+      - '--quiet'
+
 images:
   - 'us-east1-docker.pkg.dev/$PROJECT_ID/lab04-images/lab04-app:$COMMIT_SHA'
 
-# Store build logs in Google Cloud Logging
 options:
   logging: CLOUD_LOGGING_ONLY
