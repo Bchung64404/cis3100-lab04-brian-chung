@@ -1,2 +1,7 @@
 db_data/
 .env
+backups/
+
+# Local validation and submission evidence (keep off GitHub).
+/tests/
+/docs/evidence/

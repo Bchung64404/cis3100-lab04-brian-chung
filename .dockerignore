@@ -1,0 +1,7 @@
+.git
+.env
+.env.*
+db_data
+backups
+tests
+docs
