@@ -1,6 +1,9 @@
+
 .git
 .env
 .env.*
+!.env.example
+
 db_data
 backups
 tests
